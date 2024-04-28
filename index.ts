@@ -29,6 +29,9 @@ rl.on('line', (line) => {
         else if (typeof value === 'number') {
             console.log(`${value}: number`);
         }
+        else if (value === null) {
+            console.log("null");
+        }
     } catch (e) {
         let message = 'Unknown Error'
         if (e instanceof Error) message = e.message

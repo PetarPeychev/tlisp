@@ -9,7 +9,7 @@ export class Interpreter {
         this.environment = env || Environment.default();
     }
 
-    public evaluate(statement: string): number {
+    public evaluate(statement: string): number | null {
         let tokens = this.tokenize(statement);
         let ast = this.parse(tokens);
         return this.eval(ast);
@@ -51,7 +51,7 @@ export class Interpreter {
         }
     }
 
-    private eval(ast: AST): number {
+    private eval(ast: AST): number | null {
         if (typeof ast === 'number') {
             return ast;
         } else if (typeof ast === 'string') {
@@ -64,6 +64,14 @@ export class Interpreter {
             let [fn, ...args] = ast;
             if (typeof fn !== 'string') {
                 throw new SyntaxError("Expected function name");
+            }
+            if (fn === 'define') {
+                let [name, value] = args;
+                if (typeof name !== 'string') {
+                    throw new SyntaxError("Expected symbol");
+                }
+                this.environment.set(name, this.eval(value));
+                return null;
             }
             return this.environment.get(fn)(...args.map((arg: any) => this.eval(arg)));
         }
