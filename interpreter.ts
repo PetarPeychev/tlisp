@@ -63,8 +63,9 @@ export class Interpreter {
         } else {
             let [fn, ...args] = ast;
             if (typeof fn !== 'string') {
-                throw new SyntaxError("Expected function name");
+                throw new SyntaxError("Expected procedure name");
             }
+
             if (fn === 'define') {
                 let [name, value] = args;
                 if (typeof name !== 'string') {
@@ -73,7 +74,20 @@ export class Interpreter {
                 this.environment.set(name, this.eval(value));
                 return null;
             }
-            return this.environment.get(fn)(...args.map((arg: any) => this.eval(arg)));
+            else if (fn === 'if') {
+                let [condition, then, otherwise, ...rest] = args;
+                if (condition === undefined || then === undefined || otherwise === undefined || rest.length > 0) {
+                    throw new SyntaxError("Expected 3 arguments");
+                }
+                if (this.eval(condition)) {
+                    return this.eval(then);
+                } else {
+                    return this.eval(otherwise);
+                }
+            }
+            else {
+                return this.environment.get(fn)(...args.map((arg: any) => this.eval(arg)));
+            }
         }
     }
 }
