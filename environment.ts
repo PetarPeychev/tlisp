@@ -1,4 +1,4 @@
-type Value = number | string | Value[] | ((...args: Value[]) => Value);
+type Value = number | string | boolean | null | Value[] | ((...args: Value[]) => Value);
 
 export class Environment extends Map<string, Value> {
     private parent: Environment | null;

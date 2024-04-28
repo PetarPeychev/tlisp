@@ -16,7 +16,6 @@ process.stdout.write("> ");
 const interpreter = new Interpreter();
 
 rl.on('line', (line) => {
-    console.log(line);
     if (line === ":exit") {
         rl.close();
         return;
@@ -24,17 +23,20 @@ rl.on('line', (line) => {
     try {
         let value = interpreter.evaluate(line);
         if (typeof value === 'string') {
-            console.log(`"${value}": string`);
+            console.log(`"${value}": str`);
         }
         else if (typeof value === 'number') {
-            console.log(`${value}: number`);
+            console.log(`${value}: num`);
+        }
+        else if (typeof value === 'boolean') {
+            console.log(`${value}: bool`);
         }
         else if (value === null) {
             console.log("null");
         }
     } catch (e) {
-        let message = 'Unknown Error'
-        if (e instanceof Error) message = e.message
+        let message = 'Error: Unknown Error'
+        if (e instanceof Error) message = `${e.name}: ${e.message}`;
         console.log(message);
     }
     process.stdout.write("> ");

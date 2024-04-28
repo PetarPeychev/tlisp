@@ -1,6 +1,6 @@
 import { Environment } from './environment';
 
-type AST = number | string | AST[];
+type AST = number | string | boolean | null | AST[];
 
 export class Interpreter {
     readonly environment: Environment;
@@ -9,7 +9,7 @@ export class Interpreter {
         this.environment = env || Environment.default();
     }
 
-    public evaluate(statement: string): number | null {
+    public evaluate(statement: string): number | boolean | null {
         let tokens = this.tokenize(statement);
         let ast = this.parse(tokens);
         return this.eval(ast);
@@ -43,15 +43,24 @@ export class Interpreter {
         }
     }
 
-    private parse_atom(token: string): number | string {
+    private parse_atom(token: string): number | string | boolean | null {
         if (!isNaN(Number(token))) {
             return Number(token);
-        } else {
+        } else if (token === 'true') {
+            return true;
+        }
+        else if (token === 'false') {
+            return false;
+        }
+        else if (token === 'null') {
+            return null;
+        }
+        else {
             return token;
         }
     }
 
-    private eval(ast: AST): number | null {
+    private eval(ast: AST): number | boolean | null {
         if (typeof ast === 'number') {
             return ast;
         } else if (typeof ast === 'string') {
@@ -60,6 +69,10 @@ export class Interpreter {
                 throw new SyntaxError(`Undefined symbol: ${ast}`);
             }
             return this.eval(value);
+        } else if (typeof ast === 'boolean') {
+            return ast;
+        } else if (ast === null) {
+            return null;
         } else {
             let [fn, ...args] = ast;
             if (typeof fn !== 'string') {
@@ -76,17 +89,28 @@ export class Interpreter {
             }
             else if (fn === 'if') {
                 let [condition, then, otherwise, ...rest] = args;
-                if (condition === undefined || then === undefined || otherwise === undefined || rest.length > 0) {
+                if (
+                    condition === undefined
+                    || then === undefined
+                    || otherwise === undefined
+                    || rest.length > 0
+                ) {
                     throw new SyntaxError("Expected 3 arguments");
                 }
-                if (this.eval(condition)) {
+                let cond = this.eval(condition);
+                if (cond === true) {
                     return this.eval(then);
-                } else {
+                } else if (cond === false) {
                     return this.eval(otherwise);
+                }
+                else {
+                    throw new TypeError("Expected boolean condition");
                 }
             }
             else {
-                return this.environment.get(fn)(...args.map((arg: any) => this.eval(arg)));
+                return this.environment.get(fn)(...args.map(
+                    (arg: any) => this.eval(arg)
+                ));
             }
         }
     }
